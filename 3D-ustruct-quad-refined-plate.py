@@ -122,42 +122,24 @@ model.geo.synchronize()
 # 
 # MESH REFINEMENT 
 
-# define a points around which to refine the mesh
+# define a line via two points around which to refine the mesh
 ps = model.geo.addPoint(ll, ll, startline, lc)
 pf = model.geo.addPoint(ll, ll, stopline, lc)
-# pm = model.geo.addPoint(ll, ll, hh, lc)
 l = model.geo.addLine(ps, pf)
-
-# def pointInCurve(point_tag, curve_tag):
-#     return occ.fragment([(0, point_tag)], [(1, curve_tag)])[0]
-
-# for points in np.arange(start, stop, step):
-#     model.geo.addPoint(ll, ll, points, lc)
 
 occ.synchronize()
 model.geo.synchronize()
 
 # embed new points into the surfaces and volume
-
-# for points in np.arange(9, 19, 10):
-#     print(points)
-#     mesh.embed(0, [points], 2, 201)
-#     mesh.embed(0, [points], 3, 1)
-
-# mesh.embed(0, [9], 3, 1)
-# mesh.embed(0, [9], 2, 201)
-# mesh.embed(0, [18], 3, 1)
-# # mesh.embed(0, [pm], 3, 1)
-# mesh.embed(0, [18], 2, 202)
+# mesh.embed(0, [pf], 2, 201)
+# mesh.embed(0, [ps], 3, 1)
 mesh.embed(1, [l], 3, 1)
-# mesh.embed(1, [l], 2, 201)
-# mesh.embed(1, [l], 2, 202)
 
 # define a distance field for mesh refinement around points
 mesh.field.add("Distance", 1)
-mesh.field.setNumbers(1, "PointsList", [ps, pf])
+mesh.field.setNumbers(1, "CurvesList", [l])
 
-# math eval to determine the mesh size (quadratic depending on distance to points)
+# math eval to determine the mesh size (quadratic depending on distance to line l)
 mesh.field.add("MathEval", 2)
 mesh.field.setString(2, "F", "F1^2 +" + str(lc / 10))
 
