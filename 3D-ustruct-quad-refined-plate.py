@@ -8,6 +8,7 @@ import gmsh
 import math
 import sys
 import os
+import numpy as np
 
 gmsh.initialize(sys.argv)
 
@@ -23,7 +24,7 @@ model.add("t6")
 # MESHING OPTIONS
 
 # recombination tet -> hex algorithm specification
-option.setNumber("Mesh.RecombinationAlgorithm", 2)
+option.setNumber("Mesh.RecombinationAlgorithm", 3)
 option.setNumber("Mesh.Algorithm", 5)
 option.setNumber("Mesh.RecombineAll", 1)
 option.setNumber('Mesh.Recombine3DLevel', 2)
@@ -48,10 +49,10 @@ h = 0.05
 hh = h/2
 l = 0.5
 ll = l/2
+dx = 0.0001
+startline = 0 + dx
+stopline = h - dx
 
-# mesh size definitions
-nh = 3
-nl = 20
 
 # add points; lower square plane 
 A = model.geo.addPoint(0, 0, 0, lc)
@@ -114,34 +115,49 @@ model.geo.addVolume([128], 1)
 # model.addPhysicalGroup(2, [201, 202, 203, 204, 205, 206], 51)
 # model.addPhysicalGroup(3, [1], 52)
 
+occ.synchronize()
+model.geo.synchronize()
+
 # ----------------------------------------------------------------------------- #
 # 
 # MESH REFINEMENT 
 
 # define a points around which to refine the mesh
-ps = model.geo.addPoint(ll, ll, 0, lc)
-pf = model.geo.addPoint(ll, ll, h, lc)
-pm = model.geo.addPoint(ll, ll, hh, lc)
-
-
-
+ps = model.geo.addPoint(ll, ll, startline, lc)
+pf = model.geo.addPoint(ll, ll, stopline, lc)
+# pm = model.geo.addPoint(ll, ll, hh, lc)
 l = model.geo.addLine(ps, pf)
 
+# def pointInCurve(point_tag, curve_tag):
+#     return occ.fragment([(0, point_tag)], [(1, curve_tag)])[0]
+
+# for points in np.arange(start, stop, step):
+#     model.geo.addPoint(ll, ll, points, lc)
+
 occ.synchronize()
+model.geo.synchronize()
 
 # embed new points into the surfaces and volume
-mesh.embed(0, [ps], 3, 1)
-mesh.embed(0, [ps], 2, 201)
-mesh.embed(0, [pf], 3, 1)
-mesh.embed(0, [pm], 3, 1)
-mesh.embed(0, [pf], 2, 202)
-# mesh.embed(1, [l], 3, 1)
+
+# for points in np.arange(9, 19, 10):
+#     print(points)
+#     mesh.embed(0, [points], 2, 201)
+#     mesh.embed(0, [points], 3, 1)
+
+# mesh.embed(0, [9], 3, 1)
+# mesh.embed(0, [9], 2, 201)
+# mesh.embed(0, [18], 3, 1)
+# # mesh.embed(0, [pm], 3, 1)
+# mesh.embed(0, [18], 2, 202)
+mesh.embed(1, [l], 3, 1)
+# mesh.embed(1, [l], 2, 201)
+# mesh.embed(1, [l], 2, 202)
 
 # define a distance field for mesh refinement around points
 mesh.field.add("Distance", 1)
-mesh.field.setNumbers(1, "PointsList", [ps, pf, pm])
+mesh.field.setNumbers(1, "CurvesList", [l])
 
-# math eval to determine the mesh size (quadratic depending on distance to point p)
+# math eval to determine the mesh size (quadratic depending on distance to line l)
 mesh.field.add("MathEval", 2)
 mesh.field.setString(2, "F", "F1^2 +" + str(lc / 10))
 
@@ -154,7 +170,7 @@ mesh.field.setAsBackgroundMesh(7)
 occ.synchronize()
 
 # apply an elliptic smoother to the grid to have a more regular mesh:
-option.setNumber("Mesh.Smoothing", 20)
+option.setNumber("Mesh.Smoothing", 100)
 
 occ.synchronize()
 
