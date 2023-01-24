@@ -1,5 +1,7 @@
+# Maisie E-M, Jan 23
+
 # ------------------------------------------------------------------------------
-#                    concentrated mesh in 2D extruded
+#                  refined and extruded 3D mesh for ballistic impact
 # ------------------------------------------------------------------------------
 
 # In addition to specifying target mesh sizes at the points of the geometry (see
