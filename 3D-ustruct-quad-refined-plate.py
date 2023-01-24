@@ -24,14 +24,14 @@ model.add("t6")
 # MESHING OPTIONS
 
 # recombination tet -> hex algorithm specification
-option.setNumber("Mesh.RecombinationAlgorithm", 3)
+option.setNumber("Mesh.RecombinationAlgorithm", 2)
 option.setNumber("Mesh.Algorithm", 5)
 option.setNumber("Mesh.RecombineAll", 1)
 option.setNumber('Mesh.Recombine3DLevel', 2)
 option.setNumber("Mesh.Algorithm3D", 1)
 option.setNumber("Mesh.SubdivisionAlgorithm", 2)
 option.setNumber("Mesh.RecombineOptimizeTopology", 5)
-option.setNumber("Mesh.RecombineMinimumQuality", 0.001)
+option.setNumber("Mesh.RecombineMinimumQuality", 0.1)
 option.setNumber('Mesh.SecondOrderIncomplete', 1)
 
 # when the element size is fully specified by a mesh size field, set:
@@ -44,7 +44,7 @@ option.setNumber("Mesh.MeshSizeFromCurvature", 0)
 # GEOMETRY
 
 # geometry size definitions
-lc = 1e-1
+lc = 1e-0
 h = 0.05
 hh = h/2
 l = 0.5
@@ -131,8 +131,10 @@ occ.synchronize()
 model.geo.synchronize()
 
 # embed new points into the surfaces and volume
-# mesh.embed(0, [pf], 2, 201)
-# mesh.embed(0, [ps], 3, 1)
+mesh.embed(0, [ps], 2, 201)
+mesh.embed(0, [ps], 3, 1)
+mesh.embed(0, [pf], 2, 202)
+mesh.embed(0, [pf], 3, 1)
 mesh.embed(1, [l], 3, 1)
 
 # define a distance field for mesh refinement around points
@@ -142,12 +144,12 @@ mesh.field.setNumbers(1, "CurvesList", [l])
 # frustum defined mesh size
 
 mesh.field.add("Frustum", 3)
-mesh.field.setNumber(3, "InnerR1", 0)
-mesh.field.setNumber(3, "InnerR2", 0)
+mesh.field.setNumber(3, "InnerR1", 0.2)
+mesh.field.setNumber(3, "InnerR2", 0.2)
 mesh.field.setNumber(3, "InnerV1", 0.01) 
 mesh.field.setNumber(3, "InnerV2", 0.01) 
-mesh.field.setNumber(3, "OuterR1", 0.1) 
-mesh.field.setNumber(3, "OuterR2", 0.1) 
+mesh.field.setNumber(3, "OuterR1", 0.5) 
+mesh.field.setNumber(3, "OuterR2", 0.5) 
 mesh.field.setNumber(3, "OuterV1", 0.1) 
 mesh.field.setNumber(3, "OuterV2", 0.1)
 mesh.field.setNumber(3, "X1", ll)
@@ -155,15 +157,26 @@ mesh.field.setNumber(3, "Y1", ll)
 mesh.field.setNumber(3, "Z1", 0)
 mesh.field.setNumber(3, "X2", ll)
 mesh.field.setNumber(3, "Y2", ll) 
-mesh.field.setNumber(3, "Z2", hh)
+mesh.field.setNumber(3, "Z2", h)
+
+mesh.field.add("Cylinder", 4)
+mesh.field.setNumber(4, "Radius", 0.2)
+mesh.field.setNumber(4, "VIn", 0.01) 
+mesh.field.setNumber(4, "VOut", 0.1) 
+mesh.field.setNumber(4, "XAxis", ll) 
+mesh.field.setNumber(4, "XCenter", ll) 
+mesh.field.setNumber(4, "YAxis", ll) 
+mesh.field.setNumber(4, "YCenter", ll) 
+mesh.field.setNumber(4, "ZCenter", 1) 
+mesh.field.setNumber(4, "ZAxis", hh)
 
 # math eval to determine the mesh size (quadratic depending on distance to line l)
 mesh.field.add("MathEval", 2)
-mesh.field.setString(2, "F", "F1^2 +" + str(lc / 10))
+mesh.field.setString(2, "F", "F3^2 +" + str(lc / 10))
 
 # define a field that mandates the minimum element size of all fields
 mesh.field.add("Min", 7)
-mesh.field.setNumbers(7, "FieldsList", [2])
+mesh.field.setNumbers(7, "FieldsList", [4])
 
 mesh.field.setAsBackgroundMesh(7)
 
