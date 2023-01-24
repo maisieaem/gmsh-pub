@@ -155,9 +155,9 @@ mesh.embed(1, [l], 3, 1)
 
 # define a distance field for mesh refinement around points
 mesh.field.add("Distance", 1)
-mesh.field.setNumbers(1, "CurvesList", [l])
+mesh.field.setNumbers(1, "PointsList", [ps, pf])
 
-# math eval to determine the mesh size (quadratic depending on distance to line l)
+# math eval to determine the mesh size (quadratic depending on distance to points)
 mesh.field.add("MathEval", 2)
 mesh.field.setString(2, "F", "F1^2 +" + str(lc / 10))
 
