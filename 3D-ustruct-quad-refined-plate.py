@@ -24,20 +24,27 @@ model.add("t6")
 # MESHING OPTIONS
 
 # recombination tet -> hex algorithm specification
-option.setNumber("Mesh.RecombinationAlgorithm", 3)
+option.setNumber("Mesh.RecombinationAlgorithm", 2)
 option.setNumber("Mesh.Algorithm", 5)
 option.setNumber("Mesh.RecombineAll", 1)
-option.setNumber('Mesh.Recombine3DLevel', 2)
+option.setNumber('Mesh.Recombine3DLevel', 0)
 option.setNumber("Mesh.Algorithm3D", 1)
 option.setNumber("Mesh.SubdivisionAlgorithm", 2)
 option.setNumber("Mesh.RecombineOptimizeTopology", 5)
 option.setNumber("Mesh.RecombineMinimumQuality", 0.1)
+option.setNumber("Mesh.Recombine3DConformity", 4)
+# option.setNumber("Mesh.RecombineNodeRepositioning", 0)
 option.setNumber('Mesh.SecondOrderIncomplete', 1)
+option.setNumber('Mesh.SecondOrderLinear', 1)
+option.setNumber('Mesh.SmoothCrossField', 1) 
+
 
 # when the element size is fully specified by a mesh size field, set:
-option.setNumber("Mesh.MeshSizeExtendFromBoundary", 0)
-option.setNumber("Mesh.MeshSizeFromPoints", 0)
+option.setNumber("Mesh.MeshSizeExtendFromBoundary", 3)
+option.setNumber("Mesh.MeshSizeFromPoints", 1)
 option.setNumber("Mesh.MeshSizeFromCurvature", 0)
+# option.setNumber("Mesh.MeshSizeMax", 5)
+# option.setNumber("Mesh.MeshSizeMin", 1)
 
 # ----------------------------------------------------------------------------- #
 # 
@@ -111,6 +118,8 @@ model.geo.addVolume([128], 1)
 # model.addPhysicalGroup(2, [201, 202, 203, 204, 205, 206], 51)
 # model.addPhysicalGroup(3, [1], 52)
 
+# mesh.setTransfiniteAutomatic()
+
 occ.synchronize()
 model.geo.synchronize()
 
@@ -136,10 +145,10 @@ mesh.embed(1, [l], 3, 1)
 # frustum defined mesh size
 
 mesh.field.add("Frustum", 3)
-mesh.field.setNumber(3, "InnerR1", 0.2)
-mesh.field.setNumber(3, "InnerR2", 0.2)
-mesh.field.setNumber(3, "InnerV1", 0.01) 
-mesh.field.setNumber(3, "InnerV2", 0.01) 
+mesh.field.setNumber(3, "InnerR1", 0)
+mesh.field.setNumber(3, "InnerR2", 0)
+mesh.field.setNumber(3, "InnerV1", 0.001) 
+mesh.field.setNumber(3, "InnerV2", 0.001) 
 mesh.field.setNumber(3, "OuterR1", 0.5) 
 mesh.field.setNumber(3, "OuterR2", 0.5) 
 mesh.field.setNumber(3, "OuterV1", 0.1) 
@@ -152,15 +161,15 @@ mesh.field.setNumber(3, "Y2", ll)
 mesh.field.setNumber(3, "Z2", h)
 
 mesh.field.add("Cylinder", 4)
-mesh.field.setNumber(4, "Radius", 0.2)
-mesh.field.setNumber(4, "VIn", 0.01) 
+mesh.field.setNumber(4, "Radius", 0.3)
+mesh.field.setNumber(4, "VIn", 0.0001) 
 mesh.field.setNumber(4, "VOut", 0.1) 
 mesh.field.setNumber(4, "XAxis", ll) 
 mesh.field.setNumber(4, "XCenter", ll) 
 mesh.field.setNumber(4, "YAxis", ll) 
 mesh.field.setNumber(4, "YCenter", ll) 
 mesh.field.setNumber(4, "ZCenter", 1) 
-mesh.field.setNumber(4, "ZAxis", hh)
+mesh.field.setNumber(4, "ZAxis", h)
 
 # define a distance field for mesh refinement around points
 mesh.field.add("Distance", 1)
@@ -168,13 +177,13 @@ mesh.field.setNumbers(1, "CurvesList", [l])
 
 # math eval to determine the mesh size (quadratic depending on distance to line l)
 mesh.field.add("MathEval", 2)
-mesh.field.setString(2, "F", "F3^2 +" + str(lc / 10))
+mesh.field.setString(2, "F", "0.25*F1^2 +" + str(lc / 20))
 
 # define a field that mandates the minimum element size of all fields
 mesh.field.add("Min", 7)
-mesh.field.setNumbers(7, "FieldsList", [4])
+mesh.field.setNumbers(7, "FieldsList", [2])
 
-# mesh.field.setAsBackgroundMesh(7)
+mesh.field.setAsBackgroundMesh(7)
 
 occ.synchronize()
 model.geo.synchronize()
@@ -189,7 +198,7 @@ model.geo.synchronize()
 # model.geo.mesh.setSize([(0, 4)], lc / 4)
 
 # apply an elliptic smoother to the grid to have a more regular mesh:
-option.setNumber("Mesh.Smoothing", 100)
+option.setNumber("Mesh.Smoothing", 20)
 
 # ----------------------------------------------------------------------------- #
 # 
