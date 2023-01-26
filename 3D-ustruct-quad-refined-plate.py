@@ -24,7 +24,7 @@ model.add("t6")
 # MESHING OPTIONS
 
 # recombination tet -> hex algorithm specification
-option.setNumber("Mesh.RecombinationAlgorithm", 2)
+option.setNumber("Mesh.RecombinationAlgorithm", 3)
 option.setNumber("Mesh.Algorithm", 5)
 option.setNumber("Mesh.RecombineAll", 1)
 option.setNumber('Mesh.Recombine3DLevel', 2)
@@ -44,15 +44,11 @@ option.setNumber("Mesh.MeshSizeFromCurvature", 0)
 # GEOMETRY
 
 # geometry size definitions
-lc = 1e-0
+lc = 1e-1
 h = 0.05
 hh = h/2
 l = 0.5
 ll = l/2
-dx = 0.0001
-startline = 0 + dx
-stopline = h - dx
-
 
 # add points; lower square plane 
 A = model.geo.addPoint(0, 0, 0, lc)
@@ -100,7 +96,7 @@ model.geo.addPlaneSurface([104], 204)
 model.geo.addPlaneSurface([105], 205)
 model.geo.addPlaneSurface([106], 206)
 
-# model.geo.synchronize()
+model.geo.synchronize()
 occ.synchronize()
 
 # model.geo.mesh.setRecombine(201, 1)
@@ -123,8 +119,8 @@ model.geo.synchronize()
 # MESH REFINEMENT 
 
 # define a line via two points around which to refine the mesh
-ps = model.geo.addPoint(ll, ll, startline, lc)
-pf = model.geo.addPoint(ll, ll, stopline, lc)
+ps = model.geo.addPoint(ll, ll, 0, lc)
+pf = model.geo.addPoint(ll, ll, h, lc)
 l = model.geo.addLine(ps, pf)
 
 occ.synchronize()
@@ -136,10 +132,6 @@ mesh.embed(0, [ps], 3, 1)
 mesh.embed(0, [pf], 2, 202)
 mesh.embed(0, [pf], 3, 1)
 mesh.embed(1, [l], 3, 1)
-
-# define a distance field for mesh refinement around points
-mesh.field.add("Distance", 1)
-mesh.field.setNumbers(1, "CurvesList", [l])
 
 # frustum defined mesh size
 
@@ -170,6 +162,10 @@ mesh.field.setNumber(4, "YCenter", ll)
 mesh.field.setNumber(4, "ZCenter", 1) 
 mesh.field.setNumber(4, "ZAxis", hh)
 
+# define a distance field for mesh refinement around points
+mesh.field.add("Distance", 1)
+mesh.field.setNumbers(1, "CurvesList", [l])
+
 # math eval to determine the mesh size (quadratic depending on distance to line l)
 mesh.field.add("MathEval", 2)
 mesh.field.setString(2, "F", "F3^2 +" + str(lc / 10))
@@ -178,14 +174,10 @@ mesh.field.setString(2, "F", "F3^2 +" + str(lc / 10))
 mesh.field.add("Min", 7)
 mesh.field.setNumbers(7, "FieldsList", [4])
 
-mesh.field.setAsBackgroundMesh(7)
+# mesh.field.setAsBackgroundMesh(7)
 
 occ.synchronize()
-
-# apply an elliptic smoother to the grid to have a more regular mesh:
-option.setNumber("Mesh.Smoothing", 100)
-
-occ.synchronize()
+model.geo.synchronize()
 
 # alternative mesh refinement methods:
 
@@ -195,6 +187,9 @@ occ.synchronize()
 # mesh refinement around embedded point
 # model.geo.mesh.setSize([(0, 1)], lc / 4)
 # model.geo.mesh.setSize([(0, 4)], lc / 4)
+
+# apply an elliptic smoother to the grid to have a more regular mesh:
+option.setNumber("Mesh.Smoothing", 100)
 
 # ----------------------------------------------------------------------------- #
 # 
