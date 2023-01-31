@@ -197,7 +197,7 @@ occ.synchronize()
 
 num_nodes = nl+1
 for curve in [1, 2, 3, 4, 5, 6, 7, 8]:
-    mesh.setTransfiniteCurve(curve, num_nodes)
+    mesh.setTransfiniteCurve(curve, num_nodes, "Bump", coef=-20)
 num_nodes = nh+1
 for curve in [9, 10, 11, 12]:
     mesh.setTransfiniteCurve(curve, num_nodes)

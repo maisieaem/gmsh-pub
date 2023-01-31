@@ -35,7 +35,7 @@ option.setNumber('Mesh.SecondOrderIncomplete', 1)
 
 # when the element size is fully specified by a mesh size field, set:
 option.setNumber("Mesh.MeshSizeExtendFromBoundary", 0)
-option.setNumber("Mesh.MeshSizeFromPoints", 0)
+option.setNumber("Mesh.MeshSizeFromPoints", 3)
 option.setNumber("Mesh.MeshSizeFromCurvature", 0)
 
 # ----------------------------------------------------------------------------- #
@@ -99,7 +99,7 @@ model.geo.addPlaneSurface([104], 204)
 model.geo.addPlaneSurface([105], 205)
 model.geo.addPlaneSurface([106], 206)
 
-# model.geo.synchronize()
+model.geo.synchronize()
 occ.synchronize()
 
 # model.geo.mesh.setRecombine(201, 1)
@@ -123,11 +123,10 @@ ps = model.geo.addPoint(ll, ll, 0, lc)
 pf = model.geo.addPoint(ll, ll, h, lc)
 pm = model.geo.addPoint(ll, ll, hh, lc)
 
-
-
 l = model.geo.addLine(ps, pf)
 
 occ.synchronize()
+model.geo.synchronize()
 
 # embed new points into the surfaces and volume
 mesh.embed(0, [ps], 3, 1)
@@ -173,6 +172,9 @@ occ.synchronize()
 
 mesh.generate(3)
 mesh.recombine()
+# mesh.refine()
+mesh.relocateNodes()
+
 
 thepath = "/Users/adminuser/meshes"; os.chdir(thepath)
 gmsh.write("ustruct-refined.msh")
