@@ -25,14 +25,14 @@ model.add("t6")
 
 # recombination tet -> hex algorithm specification
 # 1, 5 and 8 are ok - 5 handles mesh gradients better
-option.setNumber("Mesh.Algorithm", 1)
+option.setNumber("Mesh.Algorithm", 11)
 # 1: MeshAdapt, 2: Automatic, 3: Initial mesh only, 5: Delaunay, 6: Frontal-Delaunay, 
 # 7: BAMG, 8: Frontal-Delaunay for Quads, 9: Packing of Parallelograms, 11: Quasi-structured Quad
 
-option.setNumber("Mesh.Algorithm3D", 10)
+option.setNumber("Mesh.Algorithm3D", 1)
 # 1: Delaunay, 3: Initial mesh only, 4: Frontal, 7: MMG3D, 9: R-tree, 10: HXT
 
-option.setNumber("Mesh.RecombinationAlgorithm", 0)
+option.setNumber("Mesh.RecombinationAlgorithm", 2)
 # 0: simple, 1: blossom, 2: simple full-quad, 3: blossom full-quad
 
 option.setNumber("Mesh.SubdivisionAlgorithm", 2)
@@ -103,7 +103,8 @@ option.setNumber("Mesh.MeshSizeFromCurvature", 0)
 #   h = height; l = length; r = radius
 
 lc = 1e-1
-lcmin = lc/100
+lcsmall = lc/40
+lcmin = lc/40
 lcmax = 1
 
 h = 0.005
@@ -112,8 +113,8 @@ l = 0.1
 ll = l/2
 
 # mesh refinement cylinder sizes
-r1 = l/4
-r2 = l/8
+r1 = l/5
+r2 = l/6.66
 
 # mesh constraints
 option.setNumber("Mesh.MeshSizeMax", lcmax)
@@ -224,7 +225,7 @@ mesh.embed(1, [l], 3, 1)
 
 mesh.field.add("Cylinder", 4)
 mesh.field.setNumber(4, "Radius", r1)
-mesh.field.setNumber(4, "VIn", lc/20) 
+mesh.field.setNumber(4, "VIn", lc/10) 
 mesh.field.setNumber(4, "VOut", lc) 
 mesh.field.setNumber(4, "XAxis", 0) 
 mesh.field.setNumber(4, "XCenter", ll) 
@@ -235,7 +236,7 @@ mesh.field.setNumber(4, "ZAxis", 1)
 
 mesh.field.add("Cylinder", 5)
 mesh.field.setNumber(5, "Radius", r2)
-mesh.field.setNumber(5, "VIn", lcmin) 
+mesh.field.setNumber(5, "VIn", lcsmall) 
 mesh.field.setNumber(5, "VOut", lc) 
 mesh.field.setNumber(5, "XAxis", 0) 
 mesh.field.setNumber(5, "XCenter", ll) 
@@ -250,13 +251,13 @@ mesh.field.setNumbers(1, "CurvesList", [l])
 
 # math eval to determine the mesh size (quadratic depending on distance to line l)
 mesh.field.add("MathEval", 2)
-mesh.field.setString(2, "F", "2*F1^2 +" + str(lcmin))
+mesh.field.setString(2, "F", "2.5*F1^2 +" + str(lcsmall))
 
 # define a field that mandates the minimum element size of all fields
 mesh.field.add("Min", 7)
-mesh.field.setNumbers(7, "FieldsList", [2, 4, 5])
+mesh.field.setNumbers(7, "FieldsList", [2])
 
-mesh.field.setAsBackgroundMesh(7)  
+# mesh.field.setAsBackgroundMesh(7)  
 
 occ.synchronize()
 model.geo.synchronize()
@@ -279,11 +280,11 @@ model.geo.synchronize()
 mesh.generate(3)
 
 # optimise and refine the mesh
-mesh.optimize("UntangleMeshGeometry", force=True, niter=1)
+# mesh.optimize("UntangleMeshGeometry", force=True, niter=3)
 # mesh.optimize("QuadCavityRemeshing", force=True)
 # mesh.optimize("QuadQuasiStructured", force=True, niter=3)
 
-mesh.refine()
+# mesh.refine()
 
 thepath = "/Users/adminuser/meshes"; os.chdir(thepath)
 gmsh.write("ustruct-refined.msh")
