@@ -186,6 +186,7 @@ model.geo.synchronize()
 # define a line via two points around which to refine the mesh
 ps = model.geo.addPoint(ll, ll, 0, lc)
 pf = model.geo.addPoint(ll, ll, h, lc)
+pm = model.geo.addPoint(ll, ll, hh, lc)
 l = model.geo.addLine(ps, pf)
 
 model.geo.synchronize()

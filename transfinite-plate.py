@@ -118,22 +118,7 @@ model.occ.addVolume([128], 1)
 
 occ.synchronize()
 
-# ----------------------------------------------------------------------------- #
-# 
-# SET UP TRANSFINITE INTERPOLATION
 
-num_nodes = nh+1
-for curve in [1, 2, 3, 4, 5, 6, 7, 8]:
-    mesh.setTransfiniteCurve(curve, num_nodes)
-num_nodes = nl+1
-for curve in [9, 10, 11, 12]:
-    mesh.setTransfiniteCurve(curve, num_nodes)
-  
-for surf in occ.getEntities(2):
-    mesh.setTransfiniteSurface(surf[1])
-  
-for vol in occ.getEntities(3):
-    mesh.setTransfiniteVolume(vol[1])
 
 # ----------------------------------------------------------------------------- #
 # 
@@ -158,18 +143,18 @@ occ.synchronize()
 # alternative mesh refinement methods:
 
 # background fields - this doesn't work with transfinite tror jeg
-# # define a distance field for mesh refinement around point p
-# mesh.field.add("Distance", 1)
-# mesh.field.setNumbers(1, "PointsList", [ps, pf, pm])
+# define a distance field for mesh refinement around point p
+mesh.field.add("Distance", 1)
+mesh.field.setNumbers(1, "PointsList", [ps, pf, pm])
 
-# # math eval to determine the mesh size (quadratic depending on distance to point p)
-# mesh.field.add("MathEval", 2)
-# mesh.field.setString(2, "F", "F1^2 +" + str(lc / 10))
+# math eval to determine the mesh size (quadratic depending on distance to point p)
+mesh.field.add("MathEval", 2)
+mesh.field.setString(2, "F", "F1^2 +" + str(lc / 10))
 
-# mesh.field.add("Min", 7)
-# mesh.field.setNumbers(7, "FieldsList", [2])
+mesh.field.add("Min", 7)
+mesh.field.setNumbers(7, "FieldsList", [2])
 
-# mesh.field.setAsBackgroundMesh(7)
+mesh.field.setAsBackgroundMesh(7)
 
 # OR
 
@@ -208,6 +193,25 @@ occ.synchronize()
 
 # ----------------------------------------------------------------------------- #
 # 
+# SET UP TRANSFINITE INTERPOLATION
+
+num_nodes = nl+1
+for curve in [1, 2, 3, 4, 5, 6, 7, 8]:
+    mesh.setTransfiniteCurve(curve, num_nodes, "Bump", coef=-20)
+num_nodes = nh+1
+for curve in [9, 10, 11, 12]:
+    mesh.setTransfiniteCurve(curve, num_nodes)
+  
+for surf in occ.getEntities(2):
+    mesh.setTransfiniteSurface(surf[1])
+  
+for vol in occ.getEntities(3):
+    mesh.setTransfiniteVolume(vol[1])
+# ----------------------------------------------------------------------------- #
+
+# model.occ.synchronize()
+occ.synchronize()
+
 # GENERATE MESH AND WRITE TO FILE
 
 mesh.generate(3)
