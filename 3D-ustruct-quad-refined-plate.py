@@ -98,8 +98,8 @@ option.setNumber("Mesh.MeshSizeFromCurvature", 0)
 #   lc = generic mesh size
 #   lcmin = minimum refined mesh size
 #   lcmax = max refined mesh size
-#   lcsmaller = outer cylinder of semi-refined mesh size
-#   lcsmallest = inner cylinder of fully refined mesh size
+#   lc1 = outer cylinder of semi-refined mesh size
+#   lc2 = inner cylinder of fully refined mesh size
 #   r1 = radius of sermi-refined outer cylinder
 #   r2 = radius of refined inner cylinder
 # 
@@ -107,9 +107,9 @@ option.setNumber("Mesh.MeshSizeFromCurvature", 0)
 #   h = height; l = length
 
 lc = 1e-1
-lcsmaller = lc/50
-lcsmallest= lc/100
-lcmin = lc/100
+lc1 = lc/20
+lc2 = lc/40
+lcmin = lc/40
 lcmax = 1
 
 h = 0.005
@@ -117,8 +117,8 @@ hh = h/2
 l = 0.1
 ll = l/2
 
-r1 = l/6
-r2 = l/8
+r1 = l/8
+r2 = l/10
 
 # mesh constraints
 option.setNumber("Mesh.MeshSizeMax", lcmax)
@@ -204,13 +204,13 @@ mesh.field.setNumbers(1, "CurvesList", [l])
 
 # math eval to determine the mesh size (quadratic depending on distance to line l)
 mesh.field.add("MathEval", 2)
-mesh.field.setString(2, "F", "2.5*F1^2 +" + str(lcsmallest))
+mesh.field.setString(2, "F", "2.5*F1^2 +" + str(lc2))
 
 # define two cylinder fields
 # inside and outside of which mesh size is determined
 mesh.field.add("Cylinder", 4)
 mesh.field.setNumber(4, "Radius", r1)
-mesh.field.setNumber(4, "VIn", lcsmaller) 
+mesh.field.setNumber(4, "VIn", lc1) 
 mesh.field.setNumber(4, "VOut", lc) 
 mesh.field.setNumber(4, "XAxis", 0) 
 mesh.field.setNumber(4, "XCenter", ll) 
@@ -221,7 +221,7 @@ mesh.field.setNumber(4, "ZAxis", 1)
 
 mesh.field.add("Cylinder", 5)
 mesh.field.setNumber(5, "Radius", r2)
-mesh.field.setNumber(5, "VIn", lcsmallest) 
+mesh.field.setNumber(5, "VIn", lc2) 
 mesh.field.setNumber(5, "VOut", lc) 
 mesh.field.setNumber(5, "XAxis", 0) 
 mesh.field.setNumber(5, "XCenter", ll) 
