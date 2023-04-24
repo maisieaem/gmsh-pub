@@ -1,8 +1,8 @@
 # Maisie E-M, April 23
 
-# ----------------------------------------------------------------------------- #
-#  gmsh code to generate refined cylinderical plate mesh for ballistic impact sims
-# ----------------------------------------------------------------------------- #
+# -------------------------------------------------------------------------------------- #
+#  gmsh code to generate refined cylinderical plate mesh for ballistic impact simulations
+# -------------------------------------------------------------------------------------- #
 
 import gmsh
 import math
@@ -104,7 +104,7 @@ option.setNumber("Mesh.MeshSizeFromCurvature", 0)
 #   lcmax = max refined mesh size
 #   lcsmaller = outer cylinder of semi-refined mesh size
 #   lcsmallest = inner cylinder of fully refined mesh size
-#   r1 = radius of sermi-refined outer cylinder
+#   r1 = radius of semi-refined outer cylinder
 #   r2 = radius of refined inner cylinder
 # 
 # plate geometry definitions
@@ -116,7 +116,7 @@ lcsmallest= lc/80
 lcmin = lc/100
 lcmax = 1
 
-h = 0.005
+h = 0.010
 hh = h/2
 rcyl = 0.065
 rrcyl = rcyl/2
@@ -124,16 +124,9 @@ rrcyl = rcyl/2
 r1 = rcyl/6
 r2 = rcyl/3
 
-# mesh constraints
+# mesh size constraints
 option.setNumber("Mesh.MeshSizeMax", lcmax)
 option.setNumber("Mesh.MeshSizeMin", lcmin)
-
-# add points; lower plane 
-# model.geo.addPoint(x, y, z, local mesh size)
-# A = model.geo.addPoint(0, 0, 0, lc)
-# B = model.geo.addPoint(l, 0, 0, lc)
-# C = model.geo.addPoint(l, l, 0, lc)
-# D = model.geo.addPoint(0, l, 0, lc)
 
 # add lower and upper circles
 # label = model.occ.addCircle(x, y, z, radius)
@@ -148,56 +141,10 @@ model.occ.addCurveLoop([C2], 102)
 model.occ.addPlaneSurface([101], 201)
 model.occ.addPlaneSurface([102], 202)
 
-# join circles and make solid?
+# join circles and make volume
 model.occ.addThruSections([101, 102], 301, makeSolid=True, smoothing=True)
 
-# upper plane 
-# E = model.geo.addPoint(0, 0, h, lc)
-# F = model.geo.addPoint(l, 0, h, lc)
-# G = model.geo.addPoint(l, l, h, lc)
-# H = model.geo.addPoint(0, l, h, lc)
-
-# # connect points with lines; lower plane 
-# model.geo.addLine(A, B, 1)
-# model.geo.addLine(C, B, 2)
-# model.geo.addLine(C, D, 3)
-# model.geo.addLine(D, A, 4)
-
-# # upper plane
-# model.geo.addLine(E, F, 5)
-# model.geo.addLine(G, F, 6)
-# model.geo.addLine(G, H, 7)
-# model.geo.addLine(H, E, 8)
-
-# # connect planes 
-# model.geo.addLine(1, 5, 9)
-# model.geo.addLine(2, 6, 10)
-# model.geo.addLine(3, 7, 11)
-# model.geo.addLine(4, 8, 12)
-
-# # connect lines with loops
-# model.geo.addCurveLoop([4, 1, -2, 3], 101)
-# model.geo.addCurveLoop([8, 5, -6, 7], 102)
-# model.geo.addCurveLoop([12, 8, -9, -4], 103)
-# model.geo.addCurveLoop([5, -10, -1, 9], 104)
-# model.geo.addCurveLoop([-6, -11, 2, 10], 105)
-# model.geo.addCurveLoop([11, 7, -12, -3], 106)
-
-# # create surfaces on the loops
-# model.geo.addPlaneSurface([101], 201)
-# model.geo.addPlaneSurface([102], 202)
-# model.geo.addPlaneSurface([103], 203)
-# model.geo.addPlaneSurface([104], 204)
-# model.geo.addPlaneSurface([105], 205)
-# model.geo.addPlaneSurface([106], 206)
-
 model.occ.synchronize()
-
-# create volume between the surfaces
-# model.geo.addSurfaceLoop([201, 202, 203, 204, 205, 206], 128)
-# model.geo.addVolume([128], 1)
-
-# model.geo.synchronize()
 
 # ----------------------------------------------------------------------------- #
 # 
@@ -210,17 +157,7 @@ l = model.occ.addLine(ps, pf)
 
 model.occ.synchronize()
 
-# embed new points and line into the surfaces and volume
-# start point into bottom face and into volume
-# gmsh.model.occ.fragment([(0, point_tag)], [(1, curve_tag)])
-# model.occ.fragment([0, ps], [1, 101])
-# mesh.embed(0, [ps], 2, 201)
-# mesh.embed(0, [ps], 3, 301)
-# # finish point into bottom face and into volume
-# mesh.embed(0, [pf], 2, 202)
-# mesh.embed(0, [pf], 3, 301)
-# # line into volume
-# mesh.embed(1, [l], 3, 301)
+# embed line into the volume
 model.occ.fragment([(1, l)], [(3, 301)])
 
 model.occ.synchronize()
