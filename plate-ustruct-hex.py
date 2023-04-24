@@ -1,7 +1,7 @@
 # Maisie E-M, Jan 23
 
 # ----------------------------------------------------------------------------- #
-#  gmsh code to generate refined mesh for ballistic impact sims
+#  gmsh code to generate refined plate mesh for ballistic impact sims
 # ----------------------------------------------------------------------------- #
 
 import gmsh
