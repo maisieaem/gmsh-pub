@@ -111,17 +111,17 @@ option.setNumber("Mesh.MeshSizeFromCurvature", 0)
 #   h = height; rcyl = radius
 
 lc = 1e-1
-lcsmaller = lc/10
-lcsmallest= lc/80
-lcmin = lc/100
+lcsmaller = lc/60
+lcsmallest= lc/140
+lcmin = 0.00005
 lcmax = 1
 
 h = 0.010
 hh = h/2
-rcyl = 0.065
+rcyl = 0.03025
 rrcyl = rcyl/2
 
-r1 = rcyl/6
+r1 = rcyl/2
 r2 = rcyl/3
 
 # mesh size constraints
@@ -168,7 +168,7 @@ mesh.field.setNumbers(1, "CurvesList", [l])
 
 # math eval to determine the mesh size (quadratic depending on distance to line l)
 mesh.field.add("MathEval", 2)
-mesh.field.setString(2, "F", "3*F1^2 +" + str(lcsmallest))
+mesh.field.setString(2, "F", "8.8*F1^2 +" + str(lcsmallest))
 
 # define two cylinder fields
 # inside and outside of which mesh size is determined
@@ -196,9 +196,15 @@ mesh.field.setNumber(5, "ZAxis", 1)
 
 # define a field that mandates the minimum element size of all fields
 mesh.field.add("Min", 7)
-mesh.field.setNumbers(7, "FieldsList", [2, 5])
+mesh.field.setNumbers(7, "FieldsList", [2, 4, 5])
 
 mesh.field.setAsBackgroundMesh(7)  
+
+# mesh constraints
+def meshSizeCallback(dim, tag, x, y, z, lc):
+    return max(lc, 0.0001)
+
+gmsh.model.mesh.setSizeCallback(meshSizeCallback)
 
 model.occ.synchronize()
 
@@ -210,7 +216,10 @@ model.occ.synchronize()
 mesh.generate(3)
 
 # optimise and refine the mesh
-mesh.optimize("UntangleMeshGeometry", force=True, niter=1)
+# mesh.optimize("Relocate3D")
+# mesh.optimize("Netgen")
+mesh.optimize("Laplace2D", niter=3)
+# mesh.optimize("UntangleMeshGeometry", force=True, niter=1)
 # mesh.optimize("QuadCavityRemeshing", force=True)
 # mesh.optimize("QuadQuasiStructured", force=True, niter=3)
 
