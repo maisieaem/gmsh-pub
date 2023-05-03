@@ -116,7 +116,7 @@ lcsmallest= lc/140
 lcmin = 0.00005
 lcmax = 1
 
-h = 0.010
+h = 0.005
 hh = h/2
 rcyl = 0.03025
 rrcyl = rcyl/2
