@@ -111,8 +111,8 @@ option.setNumber("Mesh.MeshSizeFromCurvature", 0)
 #   h = height; l = length
 
 lc = 1e-1
-lcsmaller = lc/100
-lcsmallest= lc/200
+lcsmaller = lc/50
+lcsmallest= lc/100
 lcmin = lc/200
 lcmax = 1
 
@@ -123,10 +123,6 @@ ll = l/2
 
 r1 = l/8
 r2 = l/10
-
-# mesh constraints
-option.setNumber("Mesh.MeshSizeMax", lcmax)
-option.setNumber("Mesh.MeshSizeMin", lcmin)
 
 # add points; lower square plane 
 # model.geo.addPoint(x, y, z, local mesh size)
@@ -239,6 +235,16 @@ mesh.field.setNumbers(7, "FieldsList", [2, 4, 5])
 
 mesh.field.setAsBackgroundMesh(7)  
 
+# mesh constraints
+# function loops through all elements and adjusts the min size
+def meshSizeCallback(dim, tag, x, y, z, lc):
+    return max(lc, 0.0001)
+
+gmsh.model.mesh.setSizeCallback(meshSizeCallback)
+
+option.setNumber("Mesh.MeshSizeMax", lcmax)
+option.setNumber("Mesh.MeshSizeMin", lcmin)
+
 model.geo.synchronize()
 
 # ----------------------------------------------------------------------------- #
@@ -249,7 +255,10 @@ model.geo.synchronize()
 mesh.generate(3)
 
 # optimise and refine the mesh
-mesh.optimize("UntangleMeshGeometry", force=True, niter=1)
+mesh.optimize("Relocate3D")
+mesh.optimize("Netgen")
+mesh.optimize("Laplace2D", niter=3)
+# mesh.optimize("UntangleMeshGeometry", force=True, niter=1)
 # mesh.optimize("QuadCavityRemeshing", force=True)
 # mesh.optimize("QuadQuasiStructured", force=True, niter=3)
 
