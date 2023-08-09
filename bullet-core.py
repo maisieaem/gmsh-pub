@@ -1,9 +1,20 @@
 # Maisie E-M, Jul 23
 
+# runs in just under 1 hour
+
 # notes for working on this: 
 # remake the bullet step file by revolving a shape to get rid of the lines
-# find a way to make the tet mesh courser so it's smoother w/o tiny hex els
+# -- nah can't be done, even revolving there are the lines
 
+# find a way to make the tet mesh courser so it's smoother w/o tiny hex els
+# -- not sure this can be done. we try chat gpt 
+
+# note that blossom full quad is better than simple for preserving the shape. 
+# simple just divides the tets and uses midpoints 
+# but blossom full quad is not yet available for curved surface as I understand it.
+# check for updates on this! 
+
+# I could try a 2D quad mesh and sweep it  - but tiny elements close to axis. 
 
 # ------------------------------------------------------------------------------
 #                 unstructured hex 3D mesh for AP bullet core
@@ -110,96 +121,121 @@ option.setNumber("Mesh.MeshSizeFromCurvature", 0)
 # v = gmsh.model.occ.importShapes(os.path.join(path, os.pardir, 'bullet-outer.step'))
 
 # import the bullet STEP file
-step_file_path = os.path.abspath('bullet-outer.step')
+step_file_path = os.path.abspath('/Users/adminuser/Documents/PhD/bullet models/step files/bullet-core.step')
 v = gmsh.model.occ.importShapes(step_file_path)
 
 # get the bounding box of the volume:
-xmin, ymin, zmin, xmax, ymax, zmax = gmsh.model.occ.getBoundingBox(
-    v[0][0], v[0][1])
+# xmin, ymin, zmin, xmax, ymax, zmax = gmsh.model.occ.getBoundingBox(
+#     v[0][0], v[0][1])
 
 # We want to slice the model into N slices, and either keep the volume slices
 # or just the surfaces obtained by the cutting:
 
-N = 1  # Number of slices
-dir = 'X' # Direction: 'X', 'Y' or 'Z'
-surf = False  # Keep only surfaces?
+# N = 1  # Number of slices
+# dir = 'X' # Direction: 'X', 'Y' or 'Z'
+# surf = False  # Keep only surfaces?
 
-dx = (xmax - xmin)
-dy = (ymax - ymin)
-dz = (zmax - zmin)
-L = dz if (dir == 'X') else dx
-H = dz if (dir == 'Y') else dy
+# dx = (xmax - xmin)
+# dy = (ymax - ymin)
+# dz = (zmax - zmin)
+# L = dz if (dir == 'X') else dx
+# H = dz if (dir == 'Y') else dy
 
-# Create the first cutting plane:
-s = []
-s.append((2, gmsh.model.occ.addRectangle(xmin, ymin, zmin, L, H)))
-if dir == 'X':
-    gmsh.model.occ.rotate([s[0]], xmin, ymin, zmin, 0, 1, 0, -math.pi/2)
-elif dir == 'Y':
-    gmsh.model.occ.rotate([s[0]], xmin, ymin, zmin, 1, 0, 0, math.pi/2)
-tx = dx / N if (dir == 'X') else 0
-ty = dy / N if (dir == 'Y') else 0
-tz = dz / N if (dir == 'Z') else 0
-gmsh.model.occ.translate([s[0]], tx, ty, tz)
+# # Create the first cutting plane:
+# s = []
+# s.append((2, gmsh.model.occ.addRectangle(xmin, ymin, zmin, L, H)))
+# if dir == 'X':
+#     gmsh.model.occ.rotate([s[0]], xmin, ymin, zmin, 0, 1, 0, -math.pi/2)
+# elif dir == 'Y':
+#     gmsh.model.occ.rotate([s[0]], xmin, ymin, zmin, 1, 0, 0, math.pi/2)
+# tx = dx / N if (dir == 'X') else 0
+# ty = dy / N if (dir == 'Y') else 0
+# tz = dz / N if (dir == 'Z') else 0
+# gmsh.model.occ.translate([s[0]], tx, ty, tz)
 
-# Create the other cutting planes:
-for i in range(1, N-1):
-    s.extend(gmsh.model.occ.copy([s[0]]))
-    gmsh.model.occ.translate([s[-1]], i * tx, i * ty, i * tz)
+# # Create the other cutting planes:
+# for i in range(1, N-1):
+#     s.extend(gmsh.model.occ.copy([s[0]]))
+#     gmsh.model.occ.translate([s[-1]], i * tx, i * ty, i * tz)
 
-# Fragment (i.e. intersect) the volume with all the cutting planes:
-gmsh.model.occ.fragment(v, s)
+# # Fragment (i.e. intersect) the volume with all the cutting planes:
+# gmsh.model.occ.fragment(v, s)
 
 # Now remove all the surfaces (and their bounding entities) that are not on the
 # boundary of a volume, i.e. the parts of the cutting planes that "stick out" of
 # the volume:
-gmsh.model.occ.remove(gmsh.model.occ.getEntities(2), True)
+# gmsh.model.occ.remove(gmsh.model.occ.getEntities(2), True)
+
+# remove excess points
 
 gmsh.model.occ.synchronize()
 
-
-if surf:
+# if surf:
     # If we want to only keep the surfaces, retrieve the surfaces in bounding
     # boxes around the cutting planes...
-    eps = 1e-4
-    s = []
-    for i in range(1, N):
-        xx = xmin if (dir == 'X') else xmax
-        yy = ymin if (dir == 'Y') else ymax
-        zz = zmin if (dir == 'Z') else zmax
-        s.extend(gmsh.model.getEntitiesInBoundingBox(
-            xmin - eps + i * tx, ymin - eps + i * ty, zmin - eps + i * tz,
-            xx + eps + i * tx, yy + eps + i * ty, zz + eps + i * tz, 2))
-    # ...and remove all the other entities (here directly in the model, as we
-    # won't modify any OpenCASCADE entities later on):
-    dels = gmsh.model.getEntities(2)
-    for e in s:
-        dels.remove(e)
-    gmsh.model.removeEntities(gmsh.model.getEntities(3))
-    gmsh.model.removeEntities(dels)
-    gmsh.model.removeEntities(gmsh.model.getEntities(1))
-    gmsh.model.removeEntities(gmsh.model.getEntities(0))
+#     eps = 1e-4
+#     s = []
+#     for i in range(1, N):
+#         xx = xmin if (dir == 'X') else xmax
+#         yy = ymin if (dir == 'Y') else ymax
+#         zz = zmin if (dir == 'Z') else zmax
+#         s.extend(gmsh.model.getEntitiesInBoundingBox(
+#             xmin - eps + i * tx, ymin - eps + i * ty, zmin - eps + i * tz,
+#             xx + eps + i * tx, yy + eps + i * ty, zz + eps + i * tz, 2))
+#     # ...and remove all the other entities (here directly in the model, as we
+#     # won't modify any OpenCASCADE entities later on):
+#     dels = gmsh.model.getEntities(2)
+#     for e in s:
+#         dels.remove(e)
+#     gmsh.model.removeEntities(gmsh.model.getEntities(3))
+#     gmsh.model.removeEntities(dels)
+#     gmsh.model.removeEntities(gmsh.model.getEntities(1))
+#     gmsh.model.removeEntities(gmsh.model.getEntities(0))
+
+# gmsh.model.removeEntities(gmsh.model.getEntities(1))
+# gmsh.model.occ.remove([(2, 9)], recursive=True)
+
+lc = 0.6
+lcmin = lc -0.1
+
+# gmsh.model.occ.remove([(1, 3)], recursive=True)
+
+# gmsh.model.occ.synchronize()
 
 # Finally, let's specify a global mesh size and mesh the partitioned model:
-option.setNumber("Mesh.MeshSizeMin", 0.1)
-option.setNumber("Mesh.MeshSizeMax", 0.5)
+option.setNumber("Mesh.MeshSizeMin", lcmin)
+option.setNumber("Mesh.MeshSizeMax", lc)
 
-# # mesh constraints
-# # function loops through all elements and adjusts the min size
-# def meshSizeCallback(dim, tag, x, y, z, lc):
-#     return max(0.8, 0.01)
+# Set the mesh size callback function
+def meshSizeCallback(dim, tag, x, y, z, lc):
+    # Check if the current point is the desired point (point 7)
+    if tag == 7:
+        # Return the desired mesh size
+        return lc
+    else:
+        # Return the default mesh size
+        return lc
+
+# Register the callback function
+mesh.setSizeCallback(meshSizeCallback)
+
+# mesh constraints
+# function loops through all elements and adjusts the min size
+def meshSizeCallback(dim, tag, x, y, z, lc):
+    return max(0.5, lc)
 
 # gmsh.model.mesh.setSizeCallback(meshSizeCallback)
 
 gmsh.model.mesh.generate(3)
 
 # optimise and refine the mesh
-# mesh.optimize("Relocate3D")
-# mesh.optimize("Netgen")
-# mesh.optimize("Laplace2D", niter=1)
-# mesh.optimize("UntangleMeshGeometry", force=True, niter=1)
-# mesh.optimize("QuadCavityRemeshing", force=True)
-# mesh.optimize("QuadQuasiStructured", force=True, niter=3)
+mesh.optimize("Relocate3D") # added no extra run time
+mesh.optimize("Laplace2D", niter=1)
+mesh.optimize("UntangleMeshGeometry", force=True, niter=1) # 1 min extra run time
+# mesh.optimize("QuadCavityRemeshing", force=True) # doesn't work; no error?
+# mesh.optimize("QuadQuasiStructured", force=True, niter=1) # throws an error
+
+# try re-building with lines down the quarters 
 
 mesh.refine()
 
