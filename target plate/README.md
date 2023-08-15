@@ -53,4 +53,10 @@ A: because I forgot to embed the point in the surface as well as the volume. Mus
 
  python code for a 3D cylindrical unstructured hexahedral mesh with element size refined by a quadratic function in the area of impact and two mesh refinement cylinders.
 
-cylinder geometry is defined using OpenCascade
+cylinder geometry is defined using OpenCascade. `rcyl` is the target radius. apart from that, it's very similar to the plate target.
+
+example for `lc = 1e-1`:
+
+| lcsmaller | lcsmallest |   `r1`   |   `r2`   |     `F`    | no. els  | run time |
+|-----------|------------|----------|----------|------------|----------|----------|
+| `lc`/60   | `lc`/140   | `rcyl`/2 | `rcyl`/3 | 8.8*`F1`^2 |  ~730k   | ?? s
