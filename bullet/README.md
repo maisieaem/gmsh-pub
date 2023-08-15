@@ -27,7 +27,7 @@ general process:
 
  results:
 
-|    lc    | no. els  | run time |
+|   `lc`   | no. els  | run time |
 |----------|----------|----------|
 | 0.90     | ~65k     | < 1 s    |
 | 0.95     | ~52k     | < 1 s    |
