@@ -1,23 +1,7 @@
 # Maisie E-M, Jul 23
-
-# runs in just over 30 mins
-
-# notes for working on this: 
-# remake the bullet step file by revolving a shape to get rid of the lines
-# -- nah can't be done, even revolving there are the lines
-# -- had to remake with four lines to point to get 3D els there
-
-# find a way to make the tet mesh courser so it's smoother w/o tiny hex els
-# -- not sure this can be done. we try chat gpt 
-# -- best way is HXT 3D and Laplace, but it takes forever (20 mins course mesh)
-
-# note that blossom full quad is better than simple for preserving the shape. 
-# simple just divides the tets and uses midpoints 
-# but blossom full quad is not yet available for curved surface as I understand it.
-# check for updates on this! 
-
+#
 # ------------------------------------------------------------------------------
-#                 unstructured hex 3D mesh for AP bullet core
+#                unstructured hex 2D shell mesh for AP bullet core
 # ------------------------------------------------------------------------------
 
 import gmsh
@@ -42,6 +26,9 @@ start_time = time.perf_counter()
 # ----------------------------------------------------------------------------- #
 # 
 # MESHING OPTIONS
+
+lc = 1.2
+lcmin = lc -0.1
 
 # recombination tet -> hex algorithm specification
 # 5 and 8 are ok - 5 handles mesh gradients better. 1 decides for itself
@@ -114,11 +101,6 @@ option.setNumber("Mesh.MeshSizeFromCurvature", 0)
 # ----------------------------------------------------------------------------- #
 # 
 # GEOMETRY
-
-# Load a STEP file (using `importShapes' instead of `merge' allows to directly
-# # retrieve the tags of the highest dimensional imported entities):
-# path = os.path.dirname(os.path.abspath(__file__))
-# v = gmsh.model.occ.importShapes(os.path.join(path, os.pardir, 'bullet-outer.step'))
 
 # import the bullet STEP file
 step_file_path = os.path.abspath('/Users/adminuser/Documents/PhD/bullet models/step files/bullet-core.step')
@@ -195,43 +177,33 @@ gmsh.model.occ.synchronize()
 # gmsh.model.removeEntities(gmsh.model.getEntities(1))
 # gmsh.model.occ.remove([(2, 9)], recursive=True)
 
-lc = 0.8
-lcmin = lc -0.1
-
 # gmsh.model.occ.remove([(1, 3)], recursive=True)
 
 # gmsh.model.occ.synchronize()
 
-# Finally, let's specify a global mesh size and mesh the partitioned model:
+# specify a global mesh size and mesh the partitioned model:
 option.setNumber("Mesh.MeshSizeMin", lcmin)
 option.setNumber("Mesh.MeshSizeMax", lc)
-
-# Set the mesh size callback function
-def meshSizeCallback(dim, tag, x, y, z, lc):
-    # Check if the current point is the desired point (point 7)
-    if tag == 7:
-        # Return the desired mesh size
-        return lc
-    else:
-        # Return the default mesh size
-        return lc
-
-# Register the callback function
-mesh.setSizeCallback(meshSizeCallback)
 
 # mesh constraints
 # function loops through all elements and adjusts the min size
 def meshSizeCallback(dim, tag, x, y, z, lc):
     return max(0.5, lc)
 
-# gmsh.model.mesh.setSizeCallback(meshSizeCallback)
+mesh.setSizeCallback(meshSizeCallback)
 
-gmsh.model.mesh.generate(3)
+mesh.generate(3)
+
+# get and delete all volume entities
+volumes = gmsh.model.getEntities(dim=3)
+
+for volume in volumes:
+    gmsh.model.removeEntities([volume])
 
 # optimise and refine the mesh
-mesh.optimize("Relocate3D") # added no extra run time
-mesh.optimize("Laplace2D", niter=1)
-mesh.optimize("UntangleMeshGeometry", force=True, niter=1) # 1 min extra run time
+# mesh.optimize("Relocate3D") # added no extra run time
+# mesh.optimize("Laplace2D", niter=1)
+# mesh.optimize("UntangleMeshGeometry", force=True, niter=1) # 1 min extra run time
 # mesh.optimize("QuadCavityRemeshing", force=True) # doesn't work; no error?
 # mesh.optimize("QuadQuasiStructured", force=True, niter=1) # throws an error
 
@@ -240,7 +212,7 @@ mesh.optimize("UntangleMeshGeometry", force=True, niter=1) # 1 min extra run tim
 mesh.refine()
 
 # Save the mesh
-gmsh.write('../meshes/bullet-core-course.msh')
+gmsh.write('../meshes/bullet-shell-trial.msh')
 
 # End timer
 end_time = time.perf_counter()

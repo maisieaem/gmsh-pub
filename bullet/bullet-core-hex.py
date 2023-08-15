@@ -1,9 +1,7 @@
 # Maisie E-M, Jul 23
 
-# runs in 9 minutes
-
 # ------------------------------------------------------------------------------
-#                 unstructured hex 3D mesh for AP bullet core
+#                unstructured hex solid 3D mesh for AP bullet core
 # ------------------------------------------------------------------------------
 
 import gmsh
@@ -22,13 +20,20 @@ mesh = model.mesh
 
 gmsh.model.add("bullet")
 
-# Start timer
+writeFile = '../meshes/bullet-core-coursest.msh'
+
+# start timer
 start_time = time.perf_counter()
 
 # ----------------------------------------------------------------------------- #
 # 
 # MESHING OPTIONS
 
+# mesh size options
+lc = 1.0
+lcmin = lc - 0.1
+
+# algorithms:
 # recombination tet -> hex algorithm specification
 # 5 and 8 are ok - 5 handles mesh gradients better. 1 decides for itself
 option.setNumber("Mesh.Algorithm", 1)
@@ -100,11 +105,6 @@ option.setNumber("Mesh.MeshSizeFromCurvature", 0)
 # ----------------------------------------------------------------------------- #
 # 
 # GEOMETRY
-
-# Load a STEP file (using `importShapes' instead of `merge' allows to directly
-# # retrieve the tags of the highest dimensional imported entities):
-# path = os.path.dirname(os.path.abspath(__file__))
-# v = gmsh.model.occ.importShapes(os.path.join(path, os.pardir, 'bullet-outer.step'))
 
 # import the bullet STEP file
 step_file_path = os.path.abspath('/Users/adminuser/Documents/PhD/bullet models/step files/bullet-core.step')
@@ -181,60 +181,36 @@ gmsh.model.occ.synchronize()
 # gmsh.model.removeEntities(gmsh.model.getEntities(1))
 # gmsh.model.occ.remove([(2, 9)], recursive=True)
 
-lc = 1.2
-lcmin = lc -0.1
-
 # gmsh.model.occ.remove([(1, 3)], recursive=True)
-
 
 # gmsh.model.occ.synchronize()
 
-# Finally, let's specify a global mesh size and mesh the partitioned model:
+# specify a global mesh size and mesh the partitioned model:
 option.setNumber("Mesh.MeshSizeMin", lcmin)
 option.setNumber("Mesh.MeshSizeMax", lc)
-
-# Set the mesh size callback function
-def meshSizeCallback(dim, tag, x, y, z, lc):
-    # Check if the current point is the desired point (point 7)
-    if tag == 7:
-        # Return the desired mesh size
-        return lc
-    else:
-        # Return the default mesh size
-        return lc
-
-# Register the callback function
-mesh.setSizeCallback(meshSizeCallback)
 
 # mesh constraints
 # function loops through all elements and adjusts the min size
 def meshSizeCallback(dim, tag, x, y, z, lc):
     return max(0.5, lc)
 
-# gmsh.model.mesh.setSizeCallback(meshSizeCallback)
+gmsh.model.mesh.setSizeCallback(meshSizeCallback)
+
+gmsh.model.geo.synchronize()
 
 gmsh.model.mesh.generate(3)
 
-# get and delete all volume entities
-volumes = gmsh.model.getEntities(dim=3)
-
-for volume in volumes:
-    gmsh.model.removeEntities([volume])
-
-
 # optimise and refine the mesh
-# mesh.optimize("Relocate3D") # added no extra run time
-# mesh.optimize("Laplace2D", niter=1)
-# mesh.optimize("UntangleMeshGeometry", force=True, niter=1) # 1 min extra run time
+mesh.optimize("Relocate3D") # added no extra run time
+mesh.optimize("Laplace2D", niter=1) # smooths a lot but 30 mins extra run time
+mesh.optimize("UntangleMeshGeometry", force=True, niter=1) # 1 min extra run time
 # mesh.optimize("QuadCavityRemeshing", force=True) # doesn't work; no error?
 # mesh.optimize("QuadQuasiStructured", force=True, niter=1) # throws an error
-
-# try re-building with lines down the quarters 
 
 mesh.refine()
 
 # Save the mesh
-gmsh.write('../meshes/bullet-shell-trial.msh')
+gmsh.write(writeFile)
 
 # End timer
 end_time = time.perf_counter()
