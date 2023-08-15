@@ -1,8 +1,7 @@
 # Maisie E-M, Jul 23
 
 # ------------------------------------------------------------------------------
-#                 triangular surface mesh for AP bullet core
-#                 for input to topological-hex-2.0
+#                 tetrahedral solid mesh for AP bullet core
 # ------------------------------------------------------------------------------
 
 import gmsh
@@ -19,7 +18,9 @@ model = gmsh.model
 option = gmsh.option
 mesh = model.mesh
 
-gmsh.model.add("bullet-tri")
+gmsh.model.add("bullet-tet")
+
+writeFile = '../meshes/bullet-core-tet-lc095.msh'
 
 # Start timer
 start_time = time.perf_counter()
@@ -27,6 +28,9 @@ start_time = time.perf_counter()
 # ----------------------------------------------------------------------------- #
 # 
 # MESHING OPTIONS
+
+lc = 0.95
+lcmin = lc - 0.2
 
 # recombination tet -> hex algorithm specification
 # 5 and 8 are ok - 5 handles mesh gradients better. 1 decides for itself
@@ -69,40 +73,32 @@ option.setNumber("Mesh.MeshSizeFromCurvature", 0)
 step_file_path = os.path.abspath('/Users/adminuser/Documents/PhD/bullet models/step files/bullet-core.step')
 v = gmsh.model.occ.importShapes(step_file_path)
 
-lc = 0.6
-lcmin = lc - 0.2
-
-# Finally, let's specify a global mesh size and mesh the partitioned model:
+# specify a global mesh size and mesh the partitioned model:
 option.setNumber("Mesh.MeshSizeMin", lc)
 option.setNumber("Mesh.MeshSizeMax", lcmin)
 
-# Set the mesh size callback function
+# mesh constraints
+# function loops through all elements and adjusts the min size
 def meshSizeCallback(dim, tag, x, y, z, lc):
-    # Check if the current point is the desired point (point 7)
-    if tag == 7:
-        # Return the desired mesh size
-        return lc
-    else:
-        # Return the default mesh size
-        return lc
+    return max(0.5, lc)
 
 # Register the callback function
 mesh.setSizeCallback(meshSizeCallback)
 
+gmsh.model.occ.synchronize()
 
-
-gmsh.model.mesh.generate(2)
+gmsh.model.mesh.generate(3)
 
 # optimise and refine the mesh
 mesh.optimize("Relocate3D")  # added no extra run time
 mesh.optimize("Netgen")# added no extra run time
-# mesh.optimize("Laplace2D", niter=1)
+mesh.optimize("Laplace2D", niter=1)
 # mesh.optimize("UntangleMeshGeometry", force=True, niter=1) # 1 min extra run time
 
 mesh.refine()
 
 # Save the mesh
-gmsh.write('../meshes/bullet-tri.msh')
+gmsh.write(writeFile)
 
 # End timer
 end_time = time.perf_counter()

@@ -8,6 +8,15 @@
 <!---Here you can find information on how to download and cite it: https://gmsh.info/
 I think the easiest way is running <pip install --upgrade gmsh--->
 
+general process:
+ - step file is imported
+ - target mesh size 
+ - meshing and recombination algorithms specified
+ - tet mesh generated
+ - tets recombined into hex _[hex only]_
+ - 3D _(or 2D for shell)_ mesh generated
+ - 3D mesh optimised
+
 *note that blossom full quad is better than simple for preserving shapes when recombining. simple just divides the tets and uses midpoints. BUT blossom full quad is not yet available for curved surface as I understand it.*
 
 - [ ] **check for updates on this! (gmsh gitlab)**
@@ -15,18 +24,18 @@ I think the easiest way is running <pip install --upgrade gmsh--->
 ## bullet-core-tet.py
 
  python code for a __solid__ unstructured tetrahedral mesh in the shape of the AP bullet core as defined by a step file. 
+
+ results:
+
+|    lc    | no. els  | run time |
+|----------|----------|----------|
+| 0.90     | ~65k     | < 1 s    |
+| 0.95     | ~52k     | < 1 s    |
+| 0.10     | ~45k     | < 1 s    |
  
 ## bullet-core-hex.py
 
  python code for a __solid__ unstructured hexahedral mesh in the shape of the AP bullet core as defined by a step file. 
-
- - step file is imported
- - target mesh size 
- - meshing and recombination algorithms specified
- - tet mesh generated
- - tets recombined into hex
- - 3D mesh generated
- - 3D mesh optimised
 
  the code contains a lot of commented matter that may be used to divide up the volume into sections of various sizes.
 
@@ -36,7 +45,7 @@ I think the easiest way is running <pip install --upgrade gmsh--->
 
  the `meshSizeCallBack` function is used to loop the elements and enforce an absolute minimum of `lc = 0.5`
 
-examples:
+initial trials:
 
 - bullet-core-fine
 
@@ -56,6 +65,14 @@ examples:
         run time: ~9 mins
         34,592 elements
 
+results:
+
+|    lc    | no. els  | run time |
+|----------|----------|----------|
+| 1.10     | ~76k     | 800 s    |
+| 1.20     | ~60k     | 707 s    |
+| 1.30     | ~49k     | 625 s    |
+| 1.40     | ~40k     | 554 s    |
 
 assorted problems and fixes:
  

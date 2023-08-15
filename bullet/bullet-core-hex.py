@@ -20,7 +20,7 @@ mesh = model.mesh
 
 gmsh.model.add("bullet")
 
-writeFile = '../meshes/bullet-core-coursest.msh'
+writeFile = '../meshes/bullet-core-hex-lc11.msh'
 
 # start timer
 start_time = time.perf_counter()
@@ -30,7 +30,7 @@ start_time = time.perf_counter()
 # MESHING OPTIONS
 
 # mesh size options
-lc = 1.0
+lc = 1.1
 lcmin = lc - 0.1
 
 # algorithms:
